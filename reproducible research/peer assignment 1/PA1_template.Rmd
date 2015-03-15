@@ -1,7 +1,9 @@
 ---
 title: "Reproducible Research Peer Assignment 1"
 author: "Dhruv Mishra"
-output: html_document
+output:
+  html_document:
+    keep_md: yes
 ---
 
 ```{r libimport, echo=TRUE, message=FALSE, warning=FALSE}
@@ -12,7 +14,7 @@ library(dplyr)
 
 ## Load Data into Workspace
 
-It is assumed that the .csv file is present in the workspace directory (hence the working directory is not being set).
+It is assumed that the .csv file is present in the workspace directory (hence the working directory is not being set). This markdown file is written in R Markdown v2.
 
 ```{r, echo=TRUE}
 activity <- read.csv(file="activity.csv", header=TRUE, stringsAsFactors=F, quote="\"")

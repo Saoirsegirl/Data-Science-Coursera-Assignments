@@ -1,8 +1,5 @@
----
-title: "Reproducible Research Peer Assignment 1"
-author: "Dhruv Mishra"
-output: html_document
----
+# Reproducible Research Peer Assignment 1
+Dhruv Mishra  
 
 
 ```r
@@ -13,7 +10,7 @@ library(dplyr)
 
 ## Load Data into Workspace
 
-It is assumed that the .csv file is present in the workspace directory (hence the working directory is not being set).
+It is assumed that the .csv file is present in the workspace directory (hence the working directory is not being set). This markdown file is written in R Markdown v2.
 
 
 ```r
@@ -36,7 +33,7 @@ step_num <- sapply(split(activity$steps, activity$date), sum, na.rm=TRUE)
 hist(step_num, xlab="Total Steps per Day", ylab="Frequency", main="Histogram of Total Steps taken per day", breaks=25)
 ```
 
-![plot of chunk unnamed-chunk-3](figure/unnamed-chunk-3-1.png) 
+![](PA1_template_files/figure-html/unnamed-chunk-3-1.png) 
 
 ```r
 mean <- format(round(mean(sapply(split(activity$steps, activity$date), sum), na.rm=TRUE),3),nsmall=2)
@@ -53,13 +50,6 @@ The mean is **10766.19** and the median is **10765**.
 ```r
 by_interval <- group_by(activity, interval)
 avg_steps <- summarise(group_by, steps.in.interval  = mean(steps, na.rm = TRUE))
-```
-
-```
-## Error: is.data.frame(.data) || is.list(.data) || is.environment(.data) is not TRUE
-```
-
-```r
 with(avg_steps, 
      plot(interval, steps.in.interval, type="l", 
           xlab="Time Intervals (5-minute)", 
@@ -67,27 +57,14 @@ with(avg_steps,
           main="Average No of Steps Taken every 5 Minutes "))
 ```
 
-```
-## Error in with(avg_steps, plot(interval, steps.in.interval, type = "l", : object 'avg_steps' not found
-```
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png) 
 
 ```r
 max_steps_interval <- avg_steps[which.max(avg_steps$steps.in.interval), ]$interval
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'avg_steps' not found
-```
-
-```r
 max_steps <- max(avg_steps$steps.in.interval)
 ```
-
-```
-## Error in eval(expr, envir, enclos): object 'avg_steps' not found
-```
 ### Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps?
-The 5-minute interval containing the maximum number of steps starts at  in the dataset (i.e. the total number of rows with NAs)
+The 5-minute interval containing the maximum number of steps starts at **835** in the dataset (i.e. the total number of rows with NAs)
 
 ```r
 total_missing_val <- sum(is.na(activity))
@@ -102,64 +79,57 @@ A good strategy can be replacing the missing values with the mean for the corres
 
 ```r
 new_activity <- activity %>% left_join(avg_steps, by = "interval")
-```
 
-```
-## Error in is.data.frame(y): object 'avg_steps' not found
-```
-
-```r
 ## remove NA
 new_activity <- new_activity %>% within(steps[is.na(steps)] <- steps.in.interval[is.na(steps)])
-```
 
-```
-## Error in eval(expr, envir, enclos): object 'new_activity' not found
-```
-
-```r
 ## remove steps.in.interval column
 new_activity <- new_activity %>% within(rm(steps.in.interval))
-```
-
-```
-## Error in eval(expr, envir, enclos): object 'new_activity' not found
 ```
 
 ### Make a histogram and report the mean and median
 
 ```r
 new_step_num <- sapply(split(new_activity$steps, new_activity$date), sum, na.rm=TRUE)
-```
-
-```
-## Error in split(new_activity$steps, new_activity$date): object 'new_activity' not found
-```
-
-```r
 hist(new_step_num, xlab="Total Steps per Day", ylab="Frequency", main="Steps taken per day with NA values replaced", breaks=25)
 ```
 
-```
-## Error in hist(new_step_num, xlab = "Total Steps per Day", ylab = "Frequency", : object 'new_step_num' not found
-```
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png) 
 
 ```r
 new_mean <- format(round(mean(sapply(split(new_activity$steps, new_activity$date), sum), na.rm=TRUE),2),nsmall=2)
-```
-
-```
-## Error in split(new_activity$steps, new_activity$date): object 'new_activity' not found
-```
-
-```r
 new_median <- format(round(median(sapply(split(new_activity$steps, new_activity$date), sum), na.rm=TRUE),2),nsmall=2)
 ```
+For this new dataset, the mean is **10766.19** and the median is **10766.19**.
 
+After comparing the mean/median metrics of the two datasets, it can be seen that the mean remains the  same whereas the median shifts to the mean value in the 2nd case (where NA values were substituted with mean).
+
+## Are there differences in activity patterns between weekdays and weekends?
+
+### Create a new factor variable in the dataset with two levels - "weekday" and "weekend" indicating whether a given date is a weekday
+
+
+```r
+new.days <- new_activity %>%
+            mutate(day.of.week = as.factor(format(date,"%a")))
+new.days$day.of.week <- revalue(new.days$day.of.week, 
+                                c("Mon"= "Weekday",
+                                  "Tue" = "Weekday",
+                                  "Wed" = "Weekday",
+                                  "Thu" = "Weekday",
+                                  "Fri" = "Weekday",
+                                  "Sat" = "Weekend",
+                                  "Sun" = "Weekend"))
 ```
-## Error in split(new_activity$steps, new_activity$date): object 'new_activity' not found
+
+
+### Make a panel plot containing a time series plot (i.e. type = "l") of the 5-minute interval (x-axis) and the average number of steps taken, averaged across all weekday days or weekend days (y-axis).
+
+```r
+new.days.grp <- group_by(new.days, day.of.week, interval)
+new.days.avg <- summarize(new.days.grp, avg.steps = mean(steps))
+xyplot(avg.steps ~ interval | day.of.week, new.days.avg, type = "l", 
+       layout = c(1, 2), xlab = "Interval", ylab = "Number of steps")
 ```
 
-
-
-
+![](PA1_template_files/figure-html/unnamed-chunk-9-1.png) 
