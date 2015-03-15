@@ -71,8 +71,9 @@ library(plyr)
 library(dplyr)</code></pre>
 <div id="load-data-into-workspace" class="section level2">
 <h2>Load Data into Workspace</h2>
-<p>It is assumed that the .csv file is present in the workspace directory (hence the working directory is not being set). This markdown file is written in R Markdown v2.</p>
-<pre class="r"><code>activity &lt;- read.csv(file=&quot;activity.csv&quot;, header=TRUE, stringsAsFactors=F, quote=&quot;\&quot;&quot;)</code></pre>
+<p>It is assumed that the zip file is present in the workspace directory (hence the working directory is not being set). This markdown file is written in R Markdown v2.</p>
+<pre class="r"><code>unzip(zipfile=&quot;activity.zip&quot;, exdir=getwd());
+activity &lt;- read.csv(file=&quot;activity.csv&quot;, header=TRUE, stringsAsFactors=F, quote=&quot;\&quot;&quot;)</code></pre>
 <div id="convert-date-field-to-class-type-date." class="section level5">
 <h5>Convert date field to class type Date.</h5>
 <pre class="r"><code>activity &lt;- mutate(activity, date = as.Date(date, &quot;%Y-%m-%d&quot;))</code></pre>

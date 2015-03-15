@@ -14,9 +14,10 @@ library(dplyr)
 
 ## Load Data into Workspace
 
-It is assumed that the .csv file is present in the workspace directory (hence the working directory is not being set). This markdown file is written in R Markdown v2.
+It is assumed that the zip file is present in the workspace directory (hence the working directory is not being set). This markdown file is written in R Markdown v2.
 
 ```{r, echo=TRUE}
+unzip(zipfile="activity.zip", exdir=getwd());
 activity <- read.csv(file="activity.csv", header=TRUE, stringsAsFactors=F, quote="\"")
 ```
 
