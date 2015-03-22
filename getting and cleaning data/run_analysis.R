@@ -1,9 +1,6 @@
-## unzip file.
-## unzip(zipfile="getdata-projectfiles-UCI HAR Dataset.zip", exdir=getwd())
-## UCI HAR Dataset
-
 library(dplyr)
 
+## read files from disk
 activity <- read.table("./UCI HAR Dataset/activity_labels.txt", head = FALSE)
 names(activity) <- c("activityId", "activityLabel")
 
@@ -16,9 +13,6 @@ train.y <- read.table("./UCI HAR Dataset/train/Y_train.txt", head = FALSE)
 
 train <- read.table("./UCI HAR Dataset/train/X_train.txt", head = FALSE)
 train <- train %>% mutate(V562 = train.y[,1], V563 = train.sub[,1])
-
-## rm(train.y)
-## rm(train.sub)
 
 ## Read test data set
 test.sub <- read.table("./UCI HAR Dataset/test/subject_test.txt", head = FALSE)
