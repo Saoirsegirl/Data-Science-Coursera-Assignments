@@ -1,0 +1,121 @@
+---
+title: "Human Activity Recognition"
+author: "Dhruv Mishra"
+output: html_document
+---
+
+### Background
+
+Using devices such as Jawbone Up, Nike FuelBand, and Fitbit it is now possible to collect a large amount of data about personal activity relatively inexpensively. These type of devices are part of the quantified self movement - a group of enthusiasts who take measurements about themselves regularly to improve their health, to find patterns in their behavior, or because they are tech geeks. One thing that people regularly do is quantify how much of a particular activity they do, but they rarely quantify how well they do it. The goal of this report is to use data from accelerometers on the belt, forearm, arm, and dumbell of 6 participants. They were asked to perform barbell lifts correctly and incorrectly in 5 different ways. More information is available from the website here: http://groupware.les.inf.puc-rio.br/har (see the section on the Weight Lifting Exercise Dataset). 
+
+### Data
+
+The training data for this project are available here: 
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-training.csv
+
+The test data are available here: 
+
+https://d396qusza40orc.cloudfront.net/predmachlearn/pml-testing.csv
+
+The data for this project come from this source: http://groupware.les.inf.puc-rio.br/har.
+
+### Data cleaning
+Some values contained a "#DIV/0!" which were replaced with an NA value. The columns 8 to the end are casted to be numeric. Finally the NA values were imputed with zero.
+```{r, warning=FALSE}
+library(caret)
+
+train <- read.csv("pml-training.csv", na.strings=c("#DIV/0!") )
+test <- read.csv("pml-testing.csv", na.strings=c("#DIV/0!") )
+
+## cast into appropriate data types
+for(i in c(8:ncol(train)-1)) {train[,i] = as.numeric(train[,i])}
+for(i in c(8:ncol(test)-1)) {test[,i] = as.numeric(test[,i])}
+
+## remove NA's with zero
+train[is.na(train)] <- 0
+test[is.na(test)] <- 0
+```
+
+### Split data for CV
+The train data set is split into two parts (in the ratio of 3:1) for the purpose of cross-validating the model.
+```{r}
+set.seed(825)
+inTrain <- createDataPartition(y = train$classe, p = 0.75, list = FALSE)
+  
+training <- train[inTrain,]
+testing <- train[-inTrain,]
+```
+
+### Preprocessing on training dataset
+#### Remove timestamp columns
+```{r}
+training[,3] <- NULL
+training[,3] <- NULL
+training[,3] <- NULL
+```
+
+#### Remove X and user_name columns
+```{r}
+training[,1] <- NULL
+training[,1] <- NULL
+```
+
+#### Remove Near Zero Variables
+```{r}
+nzv <- nearZeroVar(training, saveMetrics= TRUE)
+
+## store indexes to retain
+index <- sapply(nzv$nzv, function(x){!x})
+filtered.train <- training[,index]
+```
+
+#### Remove highly coorelated variables
+```{r}
+descrCor <-  cor(filtered.train[,-ncol(filtered.train)])
+highlyCorDescr <- findCorrelation(descrCor, cutoff = 0.9)
+filtered.train <- filtered.train[,-highlyCorDescr]
+```
+
+### Classification Model
+#### Fitting a RandomForest model
+```{r}
+rf<-train(classe ~ ., data=filtered.train, method="rf", 
+            trControl=trainControl(method="cv",number=3))
+rf
+summary(rf)
+```
+
+#### Out of sample error
+```{r}
+pred.testing <- predict(rf, newdata=testing)
+confusionMatrix(pred.testing, testing$classe)
+```
+As can be seen in the confusion matrix, the out of sample error is (1-0.998)= 0.002 or **0.2%**.
+
+### Prediction
+
+```{r}
+pred <- predict(rf, newdata=test)
+pred
+```
+
+```{r, echo=FALSE, results='hide'}
+#Build answer files
+pml_write_files = function(x){
+  n = length(x)
+  for(i in 1:n){
+    filename = paste0("problem_id_",i,".txt")
+    write.table(x[i],file=filename,quote=FALSE,row.names=FALSE,col.names=FALSE)
+  }
+}
+
+pml_write_files(pred)
+```
+
+### Conclusion
+*The model selected was able to predict the 100% of the 20 cases provided.*
+
+## References
+1. Groupware@LES - Human Activity Recognition
+[1]: http://groupware.les.inf.puc-rio.br/har
