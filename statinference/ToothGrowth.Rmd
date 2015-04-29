@@ -1,0 +1,66 @@
+---
+title: "Statistical Inference Analysis on ToothGrowth Dataset"
+author: "Dhruv Mishra"
+output: word_document
+---
+The `ToothGrowth` data set contains "*The response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) with each of two delivery methods (orange juice or ascorbic acid).*" [Ref.; C. I. Bliss (1952) The Statistics of Bioassay. Academic Press]
+
+### Exploratory data analyses
+The values which the dose variable can take are 0.5, 1.0 and 2.0 and thus we will convert it into a factor. The relevant plot is in the appendix section.
+```{r, warning=FALSE}
+library(ggplot2)
+data(ToothGrowth)
+ToothGrowth$dose <- as.factor(ToothGrowth$dose)
+```
+
+The distributions of tooth length by delivery method and dose levels seem to indicate that for 0.5 and 1 mg, the mean tooth length is greater for those where orange juice (OJ) was used. For the 2 mg level, no noticeable difference in the mean is observed, but the interquartile range  for the OJ group seems to be smaller. 
+
+### Basic Summary of data
+```{r}
+summary(ToothGrowth)
+```
+
+### Confidence intervals and hypothesis tests
+See if the difference if mean equal to zero is present in the 95 percent confidence interval or t statistic is significantly larger or p value is very large than 0.05. The relevant codes are in the appendix section.
+
+##### Supp OJ vs VC
+The confidence interval contains zero so we can't reject the null hypothesis which means that we can't say that the delivery method has an effect on the tooth length.
+
+##### Dose 0.5 vs 1
+The confidence interval of -11.98 to -6.27 means that the null hypothesis is rejected and the growth caused by 0.5 is less that 1. The p value is also very small implying the rejection of null hypothesis.
+
+##### Dose 1 vs 2
+The confidence interval of -8.99 to -3.73 means that the null hypothesis is rejected and the growth caused by 1 is less that 2. The p value is also very small implying the rejection of null hypothesis.
+
+The above test implies the order 2>1>0.5 for dose variable.
+
+### Assumptions
+For this experiment, we've assumed there's a common variance in the guinea pigs population (var.equal=TRUE) while performing tests on the dose variable. The experiment design suggest that each Guinea pig was randomly assigned to a combination of dosage and supplement type, so the test that we performed used the independent samples methodology.
+
+### Conclusion
+**The supplement type has no effect on tooth growth. However increasing the dose level leads to increased tooth growth.**
+
+### Appendix
+#### Exploratory data analysis
+```{r}
+ggplot(data=ToothGrowth, aes(y=len, x=supp, fill=supp)) + geom_boxplot() + facet_wrap(~ dose, ncol=3) + ylab("Tooth length") + xlab("Delivery method") + ggtitle("Tooth growth by delivery and dose") + stat_summary(fun.y=mean, geom="point", shape=7, size=2)
+```
+
+
+The square dot represents the respective mean.
+
+#### Hypothesis Tests
+##### Supp OJ vs VC
+```{r}
+t.test(ToothGrowth$len[ToothGrowth$supp=="OJ"], ToothGrowth$len[ToothGrowth$supp=="VC"], paired = FALSE, var.equal = FALSE)
+```
+
+##### Dose 0.5 vs 1
+```{r}
+t.test(ToothGrowth$len[ToothGrowth$dose==0.5], ToothGrowth$len[ToothGrowth$dose==1], paired = FALSE, var.equal = TRUE)
+```
+
+##### Dose 1 vs 2
+```{r}
+t.test(ToothGrowth$len[ToothGrowth$dose==1], ToothGrowth$len[ToothGrowth$dose==2], paired = FALSE, var.equal = TRUE)
+```

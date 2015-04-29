@@ -1,0 +1,72 @@
+---
+title: "Motor Trend Car Road Tests - Effect of transmission on MPG"
+author: "Dhruv Mishra"
+output: word_document
+---
+### Executive Summary
+In this project, we will analyze the `mtcars` data set and explore the relationship between a set of variables and miles per gallon (MPG) (outcome). Two particular questions answered are:
+
+1. Is an automatic or manual transmission better for MPG
+2. Quantify the MPG difference between automatic and manual transmissions
+
+### Data loading and preprocessing
+```{r, warning=FALSE}
+data(mtcars)
+library(ggplot2)
+mtcars$cyl <- factor(mtcars$cyl)
+mtcars$vs <- factor(mtcars$vs)
+mtcars$gear <- factor(mtcars$gear)
+mtcars$carb <- factor(mtcars$carb)
+mtcars$am <- factor(mtcars$am,labels=c('Automatic','Manual'))
+```
+
+### Exploratory data analysis
+Please refer to appendix for the plots.
+As can be seen, MPG is generally more for manual transmission as compared to automatic transmission
+
+### Which is better: Automatic or Manual?
+To answer this question, let's fit a basic model with am as the only predictor.
+```{r}
+fit.with.am <- lm(mpg~am, data = mtcars)
+summary(fit.with.am)
+```
+
+Transmission accounts for 36% of the variance with a p-value<0.0003 implying that the model is statistically significant and the difference between the two transmission modes exits.
+The intercept and slope coefficients show that automatic transmissions achieve 17.147 mpg and manual transmission cars achieve 17.147 + 7.245 = 24.39 mpg.
+The 95% Confidence Intervals for manual and automatic transmission can be seen as below:
+```{r}
+am.automatic <- t.test(mtcars$mpg[mtcars$am == "Automatic"], mu = 0)
+am.manual <- t.test(mtcars$mpg[mtcars$am == "Manual"], mu = 0)
+am.automatic$conf.int
+am.manual$conf.int
+```
+We can see that the 95% CI for automatic transmission is (15.3, 19) is strictly below the CI for manual transmission which is (20.67, 28.12). This is evidence that manual transmission yields better fuel economy.
+
+### Quantifying the difference
+To be able to quantify the difference, we will have to create a model which explains the maximum variance. We build an initial model with all the variables as predictors and use both forward selection and backward elimination to arrive at the best model.
+```{r, results='hide'}
+fit.all <- lm(mpg ~ ., data = mtcars)
+fit.best <- step(fit.all, direction = "both")
+```
+```{r}
+summary(fit.best)
+```
+
+From the above details, we observe that the model consists of the variables `cyl`, `wt` and `hp` as confounders and `am` as the independent variable. The adjusted R2 value is 0.84 which is the maximum obtained considering all combinations of variables. Thus, we can conclude that more than 84% of the variability is explained by this model.
+
+Lets compare `fit.best` with `fit.with.am`.
+```{r}
+anova(fit.best,fit.with.am)
+```
+The p-value is highly significant implying that the additional variables actually contribute to the accuracy of the model.
+
+### Conclusion
+- Manual transmission is better for MPG by a factor of 1.8 compared to automatic transmission.
+- Means and medians for automatic and manual transmission cars are significantly different.
+
+### Appendix
+Figure-1
+```{r}
+ggplot(data=mtcars, aes(y=mpg, x = am)) + geom_boxplot() + facet_wrap(~ am) + ylab("MPG") + xlab("Trasmission") + ggtitle("MPG by transmission type")
+```
+
